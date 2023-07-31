@@ -14,12 +14,11 @@ public class EmailSender implements Sender {
 	public String send(Message message) {
 		log.debug("Email service recieved message {}", message);
 		System.out.println(message);
-		String res = "Email sender have not recieved EmailMessage";	
+		String res = errorMessage;	
 		if(message instanceof EmailMessage) {
 			EmailMessage emailMessage = (EmailMessage) message;
 			res = String.format("text: %s has been send to %s" , message.text, emailMessage.getEmailAddress());
 		} else {
-			log.error("The message has wrong type");
 			throw new IllegalArgumentException(res);
 		}
 		return res;
