@@ -5,12 +5,18 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.test.context.support.WithAnonymousUser;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.context.support.WithUserDetails;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.web.servlet.RequestBuilder;
 
 import telran.spring.model.EmailMessage;
 import telran.spring.model.TcpMessage;
 import telran.spring.service.EmailSender;
 
-@SpringBootTest
+@SpringBootTest(classes = {EmailSender.class})
+
 class EmailSenderTest {
 	@Autowired
 	EmailSender sender;

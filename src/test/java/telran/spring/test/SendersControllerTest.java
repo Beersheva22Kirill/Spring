@@ -1,6 +1,7 @@
 package telran.spring.test;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -10,12 +11,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.stereotype.Service;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import telran.spring.controller.SenderController;
 import telran.spring.model.Message;
+import telran.spring.security.service.SecurityConfiguration;
 import telran.spring.service.Sender;
 @Service //Annotation for MockSender add in Application context
 class MockSender implements Sender {
@@ -39,8 +42,8 @@ class MockSender implements Sender {
 	}
 	
 }
-
-@WebMvcTest({SenderController.class,MockSender.class})//Annotation for Spring tests without applications beans, without implementations
+@WithMockUser(roles = {"USER","ADMIN"})
+@WebMvcTest({SenderController.class,MockSender.class, SecurityConfiguration.class})//Annotation for Spring tests without applications beans, without implementations
 //Parameters of annotation it is array of classes for add to Application context
 class SendersControllerTest {
 	
@@ -73,6 +76,13 @@ class SendersControllerTest {
 	}
 	
 	@Test
+	@WithMockUser(roles = {"USER"})
+	void sendFlow403() throws Exception {
+		String messageJson = mapper.writeValueAsString(message);
+		getRequestBase(messageJson).andExpect(status().isForbidden());
+	}
+	
+	@Test
 	void sendNotFoundFlow() throws Exception {
 		message.type = "abc";
 		String messageJson = mapper.writeValueAsString(message);
@@ -90,7 +100,8 @@ class SendersControllerTest {
 	
 	@Test
 	void getTypesTest() throws Exception {
-		String responseJson = mockMvc.perform(get(getTypesUrl)).andDo(print()).andExpect(status().isOk())
+		String responseJson = mockMvc.perform(get(getTypesUrl))
+				.andDo(print()).andExpect(status().isOk())
 		.andReturn().getResponse().getContentAsString();
 		String[] typesResponse = mapper.readValue(responseJson, String[].class);
 		assertArrayEquals(new String[] {"test"}, typesResponse);
@@ -98,7 +109,8 @@ class SendersControllerTest {
 	
 	@Test
 	void isTypePathExists() throws Exception {
-		String responseJson = mockMvc.perform(get(isTypePath + "/test")).andDo(print()).andExpect(status().isOk())
+		String responseJson = mockMvc.perform(get(isTypePath + "/test"))
+				.andDo(print()).andExpect(status().isOk())
 				.andReturn().getResponse().getContentAsString();
 		Boolean booleanResponse = mapper.readValue(responseJson, boolean.class);
 		assertTrue(booleanResponse);
@@ -106,7 +118,8 @@ class SendersControllerTest {
 	
 	@Test
 	void isTypePathNoExists() throws Exception {
-		String responseJson = mockMvc.perform(get(isTypePath + "/test1")).andDo(print()).andExpect(status().isOk())
+		String responseJson = mockMvc.perform(get(isTypePath + "/test1"))
+				.andDo(print()).andExpect(status().isOk())
 				.andReturn().getResponse().getContentAsString();
 		Boolean booleanResponse = mapper.readValue(responseJson, boolean.class);
 		assertFalse(booleanResponse);
@@ -114,7 +127,8 @@ class SendersControllerTest {
 	
 	@Test
 	void isTypePathParamExists() throws Exception {
-		String responseJson = mockMvc.perform(get(isTypePath + "?type=test")).andDo(print()).andExpect(status().isOk())
+		String responseJson = mockMvc.perform(get(isTypePath + "?type=test"))
+				.andDo(print()).andExpect(status().isOk())
 				.andReturn().getResponse().getContentAsString();
 		Boolean booleanResponse = mapper.readValue(responseJson, boolean.class);
 		assertTrue(booleanResponse);
@@ -136,8 +150,7 @@ class SendersControllerTest {
 	}
 
 	private ResultActions getRequestBase(String messageJson) throws Exception {
-		return mockMvc.perform(post(sendUrl).contentType(MediaType.APPLICATION_JSON).content(messageJson))
-		.andDo(print());
+		return mockMvc.perform(post(sendUrl).contentType(MediaType.APPLICATION_JSON).content(messageJson)).andDo(print());
 	}
 
 }
