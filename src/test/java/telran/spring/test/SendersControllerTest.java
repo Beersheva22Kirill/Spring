@@ -18,7 +18,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import telran.spring.controller.SenderController;
 import telran.spring.model.Message;
-import telran.spring.security.service.SecurityConfiguration;
+import telran.spring.security.SecurityConfiguration;
 import telran.spring.service.Sender;
 @Service //Annotation for MockSender add in Application context
 class MockSender implements Sender {
