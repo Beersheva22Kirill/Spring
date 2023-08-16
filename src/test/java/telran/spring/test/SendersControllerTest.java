@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -18,7 +19,12 @@ import org.springframework.test.web.servlet.ResultActions;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import telran.spring.controller.SenderController;
 import telran.spring.model.Message;
+import telran.spring.security.AuthorizationConfiguration;
 import telran.spring.security.SecurityConfiguration;
+import telran.spring.security.SenderAuthorizationConfiguration;
+import telran.spring.security.jwt.JwtUtil;
+import telran.spring.security.jwt.model.LoginData;
+import telran.spring.security.jwt.model.LoginResponse;
 import telran.spring.service.Sender;
 @Service //Annotation for MockSender add in Application context
 class MockSender implements Sender {
@@ -43,7 +49,7 @@ class MockSender implements Sender {
 	
 }
 @WithMockUser(roles = {"USER","ADMIN"})
-@WebMvcTest({SenderController.class,MockSender.class, SecurityConfiguration.class})//Annotation for Spring tests without applications beans, without implementations
+@WebMvcTest({SenderController.class,MockSender.class, JwtUtil.class, SenderAuthorizationConfiguration.class, SecurityConfiguration.class})//Annotation for Spring tests without applications beans, without implementations
 //Parameters of annotation it is array of classes for add to Application context
 class SendersControllerTest {
 	
@@ -62,12 +68,11 @@ class SendersControllerTest {
 	String sendUrl = "http://localhost:8080/sender";
 	String getTypesUrl = sendUrl;
 	String isTypePath = String.format("%s/type", sendUrl);
-	
 	@Test
 	void mockMvcExists() {
 		assertNotNull(mockMvc);
 	}
-	
+		
 	@Test
 	void sendRigtFlow() throws Exception {
 		String messageJson = mapper.writeValueAsString(message);
