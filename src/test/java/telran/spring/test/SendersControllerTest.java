@@ -11,6 +11,8 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.stereotype.Service;
@@ -20,8 +22,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import telran.spring.controller.SenderController;
 import telran.spring.model.Message;
 import telran.spring.security.AuthorizationConfiguration;
-import telran.spring.security.SecurityConfiguration;
 import telran.spring.security.SenderAuthorizationConfiguration;
+import telran.spring.security.jwt.JwtFilter;
 import telran.spring.security.jwt.JwtUtil;
 import telran.spring.security.jwt.model.LoginData;
 import telran.spring.security.jwt.model.LoginResponse;
@@ -49,7 +51,12 @@ class MockSender implements Sender {
 	
 }
 @WithMockUser(roles = {"USER","ADMIN"})
-@WebMvcTest({SenderController.class,MockSender.class, JwtUtil.class, SenderAuthorizationConfiguration.class, SecurityConfiguration.class})//Annotation for Spring tests without applications beans, without implementations
+
+
+@WebMvcTest(value = {SenderController.class,MockSender.class, SecurityConfiguration.class},
+excludeFilters = @ComponentScan.Filter(
+		type = FilterType.ASSIGNABLE_TYPE,
+		classes = JwtFilter.class))//Annotation for Spring tests without applications beans, without implementations
 //Parameters of annotation it is array of classes for add to Application context
 class SendersControllerTest {
 	
